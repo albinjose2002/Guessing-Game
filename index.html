@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Guessing Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background: linear-gradient(120deg, #f0f0f0, #f9c74f);
+            margin: 0;
+            padding: 50px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            margin: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #333333;
+            font-size: 2.5em;
+        }
+
+        input {
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 18px;
+            width: 150px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 12px 25px;
+            margin-top: 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .clue {
+            margin-top: 15px;
+            color: #555;
+        }
+
+        .answer-btn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            margin-top: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .answer-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .level {
+            margin-bottom: 20px;
+        }
+
+        footer {
+            margin-top: 40px;
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        /* Animation for bouncing text */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-30px);
+            }
+            60% {
+                transform: translateY(-15px);
+            }
+        }
+
+        .bounce {
+            animation: bounce 2s;
+        }
+
+        /* Confetti animation */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 20px;
+            background-color: #ffcd3c;
+            top: -50px;
+            animation: fall 4s infinite;
+            opacity: 0.8;
+        }
+
+        .confetti:nth-child(2) { background-color: #ff3c3c; }
+        .confetti:nth-child(3) { background-color: #3cff99; }
+        .confetti:nth-child(4) { background-color: #3c9eff; }
+
+        @keyframes fall {
+            0% { transform: translateX(0) translateY(0); }
+            100% { transform: translateX(100px) translateY(600px) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Guess the Number Game</h1>
+        <div class="level">
+            <label for="levelSelect">Choose a Difficulty Level:</label>
+            <select id="levelSelect" onchange="selectLevel()">
+                <option value="easy">Easy (1-50, unlimited attempts)</option>
+                <option value="medium">Medium (1-100, 10 attempts)</option>
+                <option value="hard">Hard (1-200, 7 attempts)</option>
+            </select>
+        </div>
+        <p>I'm thinking of a number based on your chosen level. Can you guess it?</p>
+        <input type="number" id="userGuess" placeholder="Enter your guess" min="1">
+        <br>
+        <button onclick="guessNumber()">Submit Guess</button>
+        <button class="answer-btn" onclick="revealAnswer()">Reveal Answer</button>
+        <div class="message" id="message"></div>
+        <div class="clue" id="clue"></div>
+        <div id="confetti-container"></div>
+    </div>
+
+    <footer>Have fun guessing the number! 🚀</footer>
+
+    <script>
+        let numberToGuess;
+        let maxAttempts;
+        let attempts = 0;
+        let level = 'easy';
+        let maxRange = 50; // Default for easy level
+        let gameOver = false;
+
+        function selectLevel() {
+            level = document.getElementById('levelSelect').value;
+            attempts = 0; // Reset attempts
+            document.getElementById('userGuess').disabled = false; // Enable input in case it was disabled
+            gameOver = false;
+
+            // Set difficulty level
+            if (level === 'easy') {
+                maxRange = 50;
+                maxAttempts = null; // Unlimited attempts
+            } else if (level === 'medium') {
+                maxRange = 100;
+                maxAttempts = 10;
+            } else if (level === 'hard') {
+                maxRange = 200;
+                maxAttempts = 7;
+            }
+
+            numberToGuess = Math.floor(Math.random() * maxRange) + 1;
+            document.getElementById('message').textContent = `Level set to ${level}. I'm thinking of a number between 1 and ${maxRange}.`;
+            document.getElementById('clue').textContent = '';
+            clearConfetti(); // Clear confetti if new game starts
+        }
+
+        // Initialize game
+        selectLevel();
+
+        function guessNumber() {
+            if (gameOver) {
+                document.getElementById('message').textContent = "The game is over! Please select a new level to play again.";
+                return;
+            }
+
+            const userGuess = document.getElementById('userGuess').value;
+            const message = document.getElementById('message');
+            const clue = document.getElementById('clue');
+            attempts++;
+
+            if (!userGuess || isNaN(userGuess)) {
+                message.textContent = "Please enter a valid number!";
+                return;
+            }
+
+            const guess = Number(userGuess);
+
+            // Provide basic feedback
+            if (guess < numberToGuess) {
+                message.textContent = `Too low! You guessed ${guess}. Try again.`;
+            } else if (guess > numberToGuess) {
+                message.textContent = `Too high! You guessed ${guess}. Try again.`;
+            } else {
+                message.textContent = `🎉 Congratulations! You guessed the number ${numberToGuess} in ${attempts} tries.`;
+                document.getElementById('userGuess').disabled = true;
+                gameOver = true;
+                showConfetti(); // Show confetti on win
+                message.classList.add('bounce'); // Add bounce animation to the message
+                return;
+            }
+
+            // Provide additional clues
+            if (guess !== numberToGuess) {
+                if (attempts % 2 === 0) { // Give a clue every 2nd guess
+                    if (numberToGuess % 2 === 0) {
+                        clue.textContent = "Hint: The number is even.";
+                    } else {
+                        clue.textContent = "Hint: The number is odd.";
+                    }
+                }
+                if (attempts > 4 && guess !== numberToGuess) { // Narrow down the range after 4 guesses
+                    if (guess < numberToGuess) {
+                        clue.textContent += ` It's greater than ${guess}.`;
+                    } else {
+                        clue.textContent += ` It's less than ${guess}.`;
+                    }
+                }
+            }
+
+            // Check for game over (only for medium and hard levels)
+            if (maxAttempts && attempts >= maxAttempts) {
+                message.textContent = `😢 Game Over! You've used all your ${maxAttempts} attempts. The correct number was ${numberToGuess}.`;
+                document.getElementById('userGuess').disabled = true;
+                gameOver = true;
+            }
+        }
+
+        function revealAnswer() {
+            if (!gameOver) {
+                const message = document.getElementById('message');
+                message.textContent = `The correct number is ${numberToGuess}. Keep trying!`;
+            } else {
+                document.getElementById('message').textContent = `The correct number was ${numberToGuess}. Start a new game!`;
+            }
+        }
+
+        // Confetti animation functions
+        function showConfetti() {
+            const confettiContainer = document.getElementById('confetti-container');
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confettiContainer.appendChild(confetti);
+            }
+        }
+
+        function clearConfetti() {
+            const confettiContainer = document.getElementById('confetti-container');
+            confettiContainer.innerHTML = '';
+        }
+    </script>
+</body>
+</html>
