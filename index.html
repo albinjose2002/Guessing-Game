@@ -124,6 +124,14 @@
             0% { transform: translateX(0) translateY(0); }
             100% { transform: translateX(100px) translateY(600px) rotate(720deg); }
         }
+
+        /* Chatbot positioning */
+        #noupe-chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -149,6 +157,10 @@
 
     <footer>Have fun guessing the number! 🚀</footer>
 
+    <!-- Chatbot Integration -->
+    <script src='https://www.noupe.com/embed/0198b1cf877a72b48d02e29d4dd0ade5a994.js'></script>
+
+    <!-- Game Script -->
     <script>
         let numberToGuess;
         let maxAttempts;
